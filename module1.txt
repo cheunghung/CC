@@ -1,0 +1,52 @@
+Option Explicit
+Option Base 1
+
+Sub runform()
+popcombox1
+popcombox2
+popdate
+UserForm1.Show
+End Sub
+
+
+Sub popcombox1()
+Dim i As Integer, nrows As Integer
+nrows = WorksheetFunction.CountA(Columns("A:A"))
+
+
+For i = 1 To nrows
+    UserForm1.ComboBox1.AddItem Range("A1:A" & nrows).Cells(i, 1) & "-" & Range("B1:B" & nrows).Cells(i, 1)
+Next i
+
+    
+UserForm1.ComboBox1.Text = Range("A1") & "-" & Range("B1")
+End Sub
+
+
+Sub popcombox2()
+Dim j As Integer, nrows As Integer
+nrows = WorksheetFunction.CountA(Columns("A:A"))
+
+
+For j = 1 To nrows
+    UserForm1.ComboBox2.AddItem Range("A1:A" & nrows).Cells(j, 1) & "-" & Range("B1:B" & nrows).Cells(j, 1)
+Next j
+
+    
+UserForm1.ComboBox2.Text = Range("A1") & "-" & Range("B1")
+End Sub
+
+Sub popdate()
+Dim datearray() As String
+
+datearray = Split(Now())
+
+UserForm1.TextBox3.Text = Format(datearray(0), "mm/dd/yyyy")
+
+
+End Sub
+
+
+
+
+
