@@ -1,0 +1,284 @@
+Option Explicit
+Option Base 1
+
+
+Private Sub ComboBox1_Change()
+
+End Sub
+
+Private Sub ComboBox2_Change()
+
+End Sub
+
+Private Sub CommandButton1_Click()
+Dim dateday As String, datemonth As String, dateyear As String
+Dim url As String
+Dim firstslash As String, secondslash As String
+
+
+Dim index1 As Integer, index2 As Integer
+Dim G As Integer, a As String, b As String
+
+Application.ScreenUpdating = False
+
+UserForm1.TextBox2.Text = ""
+
+
+'input validation ORDER MATTERS!
+'put <0 or =0 last
+
+If UserForm1.TextBox1.Text = "" Then
+    G = MsgBox("your input cannot be blank!")
+    Exit Sub
+End If
+
+
+If Not IsNumeric(UserForm1.TextBox1.Text) Then
+    G = MsgBox("your input must be a number")
+    Exit Sub
+End If
+
+
+If Not IsDate(UserForm1.TextBox3.Text) Then
+    G = MsgBox("you must input a valid date")
+    Exit Sub
+End If
+
+
+If UserForm1.TextBox1.Text < 0 Or UserForm1.TextBox1.Text = 0 Then
+    G = MsgBox("you must input positive number")
+    Exit Sub
+End If
+
+
+Sheets("Sheet1").Visible = True
+
+
+firstslash = InStr(TextBox3, "/")
+secondslash = InStr(firstslash + 1, TextBox3, "/")
+
+dateday = Mid(TextBox3, firstslash + 1, 2)
+datemonth = Mid(TextBox3, 1, firstslash - 1)
+dateyear = Right(TextBox3, 4)
+
+If Len(dateday) = 1 Then dateday = "0" & dateday
+If Len(datemonth) = 1 Then datemonth = "0" & datemonth
+
+'This is an adaptation from some code found at:
+'https://stackoverflow.com/questions/19306832/web-query-vba-refresh
+    
+    url = "URL;https://www.xe.com/currencytables/?from=USD&date=" & dateyear & "-" & datemonth & "-" & dateday
+    With Worksheets("Sheet1").QueryTables.Add(Connection:=url, Destination:=Worksheets("Sheet1").Range("A1"))
+        .Name = "My Query"
+        .RowNumbers = False
+        .FillAdjacentFormulas = False
+        .PreserveFormatting = True
+        .RefreshOnFileOpen = False
+        .BackgroundQuery = False
+        .RefreshStyle = xlOverwriteCells
+        .SavePassword = False
+        .SaveData = True
+        .AdjustColumnWidth = True
+        .RefreshPeriod = 0
+        .WebSelectionType = xlEntirePage
+        .WebFormatting = xlWebFormattingNone
+        .WebPreFormattedTextToColumns = True
+        .WebConsecutiveDelimitersAsOne = True
+        .WebSingleBlockTextImport = False
+        .WebDisableDateRecognition = False
+        .WebDisableRedirections = False
+        .Refresh BackgroundQuery:=False
+    End With
+
+
+index1 = UserForm1.ComboBox1.ListIndex
+index2 = UserForm1.ComboBox2.ListIndex
+a = Sheets("Currencies").Range("A" & index2 + 1)
+b = Sheets("Currencies").Range("A" & index1 + 1)
+
+
+
+
+If index1 = 0 Then
+    UserForm1.TextBox2.Text = UserForm1.TextBox1.Text * WorksheetFunction.VLookup(a, Sheets("Sheet1").Columns("A:D"), 3, False)
+Else
+    UserForm1.TextBox2.Text = UserForm1.TextBox1.Text / WorksheetFunction.VLookup(b, Sheets("Sheet1").Columns("A:D"), 3, False) * WorksheetFunction.VLookup(a, Sheets("Sheet1").Columns("A:D"), 3, False)
+End If
+
+
+Sheets("Sheet1").Visible = False
+
+Sheets("Currencies").Select
+
+Range("D2") = UserForm1.TextBox3.Text
+Range("E2") = Sheets("Currencies").Range("A" & index1 + 1)
+Range("F2") = UserForm1.TextBox1.Text
+Range("G2") = Sheets("Currencies").Range("A" & index2 + 1)
+Range("H2") = UserForm1.TextBox2.Text
+
+Application.ScreenUpdating = True
+
+End Sub
+
+Private Sub CommandButton2_Click()
+Dim k As Integer, l As Integer, m As Integer
+Dim datearray(30) As Variant, firstslash(30) As Variant, secondslash(30) As Variant
+Dim dateday(30) As Variant, datemonth(30) As Variant, dateyear(30) As Variant
+
+Dim url As String
+Dim index1 As Integer, index2 As Integer, G As Integer
+Dim a As String, b As String
+
+Application.ScreenUpdating = False
+
+UserForm1.TextBox2.Text = ""
+
+
+If UserForm1.TextBox1.Text = "" Then
+    G = MsgBox("your input cannot be blank!")
+    Exit Sub
+End If
+
+
+If Not IsNumeric(UserForm1.TextBox1.Text) Then
+    G = MsgBox("your input must be a number")
+    Exit Sub
+End If
+
+
+If Not IsDate(UserForm1.TextBox3.Text) Then
+    G = MsgBox("you must input a valid date")
+    Exit Sub
+End If
+
+
+If UserForm1.TextBox1.Text < 0 Or UserForm1.TextBox1.Text = 0 Then
+    G = MsgBox("you must input positive number")
+    Exit Sub
+End If
+
+Sheets("Sheet1").Visible = True
+
+Sheets("plotlast30days").Select
+ActiveSheet.ChartObjects.Delete
+
+index1 = UserForm1.ComboBox1.ListIndex
+index2 = UserForm1.ComboBox2.ListIndex
+
+Range("D2") = UserForm1.TextBox3.Text
+Range("E2") = Sheets("Currencies").Range("A" & index1 + 1)
+Range("F2") = UserForm1.TextBox1.Text
+Range("G2") = Sheets("Currencies").Range("A" & index2 + 1)
+Range("H2") = "Please see table"
+
+
+For k = 30 To 1 Step -1
+    Sheets("plotlast30days").Range("A" & k) = DateAdd("d", -30 + k, UserForm1.TextBox3.Text)
+Next k
+
+
+
+For l = 1 To 30
+    firstslash(l) = InStr(Range("A" & l), "/")
+    secondslash(l) = InStr(firstslash(l) + 1, Range("A" & l), "/")
+    dateday(l) = Mid(Range("A" & l), firstslash(l) + 1, secondslash(l) - 3)
+    datemonth(l) = Mid(Range("A" & l), 1, firstslash(l) - 1)
+    dateyear(l) = Right(Range("A" & l), 4)
+    If Len(datemonth(l)) = 1 Then datemonth(l) = "0" & datemonth(l)
+    If Len(dateday(l)) = 1 Then dateday(l) = "0" & dateday(l)
+    datearray(l) = dateyear(l) & "-" & datemonth(l) & "-" & dateday(l)
+Next l
+
+
+Sheets("Sheet1").Select
+Cells.Clear
+
+
+a = Sheets("Currencies").Range("A" & index2 + 1)
+b = Sheets("Currencies").Range("A" & index1 + 1)
+
+
+For m = 1 To 30
+    url = "URL;https://www.xe.com/currencytables/?from=USD&date=" & datearray(m)
+    With Worksheets("Sheet1").QueryTables.Add(Connection:=url, Destination:=Worksheets("Sheet1").Range("A1"))
+        .Name = "My Query"
+        .RowNumbers = False
+        .FillAdjacentFormulas = False
+        .PreserveFormatting = True
+        .RefreshOnFileOpen = False
+        .BackgroundQuery = False
+        .RefreshStyle = xlOverwriteCells
+        .SavePassword = False
+        .SaveData = True
+        .AdjustColumnWidth = True
+        .RefreshPeriod = 0
+        .WebSelectionType = xlEntirePage
+        .WebFormatting = xlWebFormattingNone
+        .WebPreFormattedTextToColumns = True
+        .WebConsecutiveDelimitersAsOne = True
+        .WebSingleBlockTextImport = False
+        .WebDisableDateRecognition = False
+        .WebDisableRedirections = False
+        .Refresh BackgroundQuery:=False
+    End With
+    
+    If index1 = 0 Then
+        Sheets("plotlast30days").Range("B" & m) = UserForm1.TextBox1.Text * WorksheetFunction.VLookup(a, Sheets("Sheet1").Columns("A:D"), 3, False)
+    Else
+        Sheets("plotlast30days").Range("B" & m) = UserForm1.TextBox1.Text / WorksheetFunction.VLookup(b, Sheets("Sheet1").Columns("A:D"), 3, False) * WorksheetFunction.VLookup(a, Sheets("Sheet1").Columns("A:D"), 3, False)
+    End If
+Next m
+
+
+Sheets("plotlast30days").Select
+Columns("A:B").Select
+ActiveSheet.Shapes.AddChart2(240, xlXYScatterSmoothNoMarkers).Select
+ActiveChart.SetSourceData Source:=Range("'plotlast30days'!$A:$B")
+ActiveChart.ChartTitle.Select
+Selection.Delete
+
+Sheets("Sheet1").Visible = False
+
+Application.ScreenUpdating = True
+
+MsgBox ("plot done!")
+
+
+
+End Sub
+
+Private Sub CommandButton3_Click()
+Unload UserForm1
+
+End Sub
+
+Private Sub CommandButton4_Click()
+Unload UserForm1
+popcombox1
+popcombox2
+popdate
+UserForm1.Show
+
+End Sub
+
+Private Sub Label5_Click()
+
+End Sub
+
+Private Sub TextBox1_Change()
+
+End Sub
+
+Private Sub TextBox2_Change()
+
+
+
+End Sub
+
+Private Sub TextBox3_Change()
+
+End Sub
+
+Private Sub UserForm_Click()
+
+End Sub
